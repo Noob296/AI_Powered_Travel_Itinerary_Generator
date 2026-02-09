@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Travel Itinerary Generator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-left">AI Travel Planner</div>
+    <div class="nav-right">
+      <a href="{{ url_for('history') }}">Chat History</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="chat-container">
+      <div class="chat-header">AI Travel Planner</div>
+      <div class="chat-box" id="chat-box">
+        <div class="message bot">👋 Hi! I can help you plan your next trip. To start, please tell me: Where are you traveling from, where do you want to go, how many people are traveling, your preferred mode of transport, and for how many days?</div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="e.g. I want to go from Delhi to Mumbai for 3 days by train with 2 people" />
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const sendBtn = document.getElementById("send-btn");
+    const userInput = document.getElementById("user-input");
+
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.className = `message ${sender}`;
+      // Use innerHTML for bot messages to render markdown properly
+      div.innerHTML = sender === 'bot' ? marked.parse(text) : text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", async () => {
+      const message = userInput.value.trim();
+      if (!message) return;
+      addMessage("user", message);
+      userInput.value = "";
+
+      // Add a placeholder message immediately after user sends message
+      const botThinkingMessage = document.createElement("div");
+      botThinkingMessage.className = "message bot thinking-placeholder";
+      botThinkingMessage.textContent = "Thinking..."; // Or an emoji ⏳
+      chatBox.appendChild(botThinkingMessage);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+
+      try {
+        const res = await fetch("/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+        
+        // Remove the thinking placeholder before adding the actual response
+        chatBox.removeChild(botThinkingMessage);
+        addMessage("bot", data.response);
+
+        // Check if there's a replay message from history
+        const replayMessage = sessionStorage.getItem("replayMessage");
+        if (replayMessage) {
+            userInput.value = replayMessage;
+            sessionStorage.removeItem("replayMessage"); // Clear after use
+            // Optionally, simulate sending it
+            // sendBtn.click(); 
+        }
+
+      } catch (err) {
+        // Remove thinking placeholder even on error
+        chatBox.removeChild(botThinkingMessage);
+        addMessage("bot", "❌ Something went wrong! Please try again.");
+        console.error("Fetch error:", err);
+      }
+    });
+
+    // Press Enter to submit
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+
+    // Load marked.js for Markdown rendering (add to <head> as well if not there)
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    script.onload = () => {
+        // Handle replay message if coming from history page
+        const replayMessage = sessionStorage.getItem("replayMessage");
+        if (replayMessage) {
+            userInput.value = replayMessage;
+            // Optionally trigger send immediately or let user press Enter
+            // sendBtn.click(); 
+            sessionStorage.removeItem("replayMessage"); // Clear after setting
+        }
+    };
+    document.head.appendChild(script);
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to TravelBot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-left">AI Travel Planner</div>
+    <div class="nav-right">
+      <a href="{{ url_for('signup') }}">Sign Up</a>
+      <a href="{{ url_for('signin') }}">Sign In</a>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="welcome-content">
+      <h1>👋 Welcome to TravelBot!</h1>
+      <p>Your personal AI-powered travel itinerary planner. Get ready to explore the world with ease!</p>
+
+      <div class="button-group">
+        <a href="{{ url_for('signup') }}">
+          <button class="primary-btn">Create Account</button>
+        </a>
+        <a href="{{ url_for('signin') }}">
+          <button class="primary-btn">Sign In</button>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

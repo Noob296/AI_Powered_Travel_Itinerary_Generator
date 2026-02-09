@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat History - AI Travel Planner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <style>
+    .chat-entry {
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .chat-entry:hover {
+      background-color: #e0e7ff;
+    }
+    .user-message-content, .bot-response-content {
+      white-space: pre-wrap; /* Preserves whitespace and wraps text */
+      word-wrap: break-word; /* Breaks long words */
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-left">AI Travel Planner</div>
+    <div class="nav-right">
+      <a href="{{ url_for('chat') }}">Back to chat</a>
+    </div>
+  </nav>
+
+  <div class="chat-container">
+    <div class="chat-header">📜 Chat History for {{ session.username }}</div>
+
+    <div class="chat-box" style="align-items: flex-start;">
+      {% if chats %}
+        {% for chat in chats %}
+          <div class="message user chat-entry" onclick="replayChat(`{{ chat.message | escape }}`)" data-response="{{ chat.response | escape }}">
+            <strong>{{ chat.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</strong><br>
+            <div class="user-message-content">{{ chat.message }}</div>
+          </div>
+          <div class="message bot chat-entry" style="cursor: default;" data-raw-response="{{ chat.response | escape }}">
+            <div class="bot-response-content">
+              {% if chat.response %}
+                {{ chat.response | markdown }}
+              {% else %}
+                <p>No response available.</p>
+              {% endif %}
+            </div>
+            {#
+            // For direct JS rendering in history.html, you'd change {{ chat.response }} to
+            // an element where you append the Markdown-rendered HTML from the backend,
+            // or handle it via JS, but direct '{{ chat.response | markdown }}' assumes server-side.
+            #}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="message bot">No past chats found.</div>
+      {% endif %}
+    </div>
+
+    <div class="chat-input-area" style="display: none; padding: 10px; border-top: 1px solid #ddd; justify-content: center; align-items: center; flex-direction: column;">
+      <h3>Full Response:</h3>
+      <div id="full-response-display" style="width: 100%; max-height: 200px; overflow-y: auto; background-color: #f0f0f0; padding: 10px; border-radius: 8px; margin-top: 10px;">
+        </div>
+      <button onclick="hideFullResponse()" class="primary-btn" style="margin-top: 10px;">Close</button>
+    </div>
+
+  </div>
+
+  <script>
+    function replayChat(userMessage) {
+      // This function can be expanded to do more, e.g., send the message back to the chat interface.
+      // For now, it just shows a simple alert.
+      // alert("Replaying chat for message: " + userMessage);
+
+      // Optionally, you can display the full response from the data-response attribute
+      const clickedChatEntry = event.currentTarget; // Get the div that was clicked
+      const rawResponse = clickedChatEntry.getAttribute('data-response');
+      const fullResponseDisplay = document.getElementById('full-response-display');
+      const chatInputArea = document.querySelector('.chat-input-area');
+
+      // Set the innerHTML directly (assuming data-response is already HTML-safe if not markdown)
+      // Since we are now rendering markdown on the server, rawResponse is already HTML
+      fullResponseDisplay.innerHTML = rawResponse;
+      chatInputArea.style.display = 'flex'; // Show the full response area
+      fullResponseDisplay.scrollTop = 0; // Scroll to top
+    }
+
+    function hideFullResponse() {
+      const chatInputArea = document.querySelector('.chat-input-area');
+      chatInputArea.style.display = 'none'; // Hide the full response area
+    }
+
+    // Adjust chat-box height to accommodate the full response display area
+    window.addEventListener('resize', adjustChatBoxHeight);
+    window.addEventListener('load', adjustChatBoxHeight);
+
+    function adjustChatBoxHeight() {
+      const navbarHeight = document.querySelector('.navbar').offsetHeight;
+      const chatHeaderHeight = document.querySelector('.chat-header').offsetHeight;
+      const fullResponseArea = document.querySelector('.chat-input-area');
+      let fullResponseAreaHeight = fullResponseArea.style.display === 'flex' ? fullResponseArea.offsetHeight : 0;
+      
+      const chatBox = document.querySelector('.chat-box');
+      // Calculate remaining height for chatBox
+      chatBox.style.height = `calc(100vh - ${navbarHeight}px - ${chatHeaderHeight}px - ${fullResponseAreaHeight}px)`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up - AI Travel Planner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="page-container">
+    <div class="form-container">
+      <h2>Create Account</h2>
+      {% if error %}
+        <p class="error-message">{{ error }}</p>
+      {% endif %}
+      <form action="{{ url_for('signup') }}" method="POST" class="auth-form">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" required placeholder="Choose a username" />
+        
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required placeholder="Choose a password" />
+        
+        <input type="submit" value="Sign Up" />
+      </form>
+      <div class="auth-toggle">
+        Already have an account? <a href="{{ url_for('signin') }}">Sign In</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
